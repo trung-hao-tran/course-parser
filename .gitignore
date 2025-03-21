@@ -1,0 +1,36 @@
+# Build artifacts
+build/
+dist/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database files
+*.db
+*.sqlite3
+
+# Environment files
+.env
+.venv
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db 
+.cursorignore
+.cursor/
+
+data/
