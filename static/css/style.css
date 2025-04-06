@@ -1,0 +1,250 @@
+/* Custom styles for the course management app */
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.filter-tag-symbol {
+  background-color: #e3f2fd;
+  color: #1e88e5;
+}
+
+.filter-tag-course {
+  background-color: #e8f5e9;
+  color: #43a047;
+}
+
+.filter-tag-teacher {
+  background-color: #fff3e0;
+  color: #fb8c00;
+}
+
+.filter-tag-period {
+  background-color: #f3e5f5;
+  color: #8e24aa;
+}
+
+.filter-tag-class {
+  background-color: #e8eaf6;
+  color: #3949ab;
+}
+
+.filter-tag-date {
+  background-color: #fce4ec;
+  color: #d81b60;
+}
+
+.filter-tag-week {
+  background-color: #e0f7fa;
+  color: #00acc1;
+}
+
+.filter-tag-comment {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+.filter-tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Search results dropdown styles */
+.search-results-dropdown {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  z-index: 50;
+}
+
+.search-result-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #f3f4f6;
+}
+
+.search-result-field {
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.search-result-value {
+  color: #1f2937;
+}
+
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.filter-section {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.filter-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.filter-section::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.filter-section::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.table-fixed {
+  table-layout: fixed;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
+/* File upload area styles */
+.file-upload-area {
+  border: 2px dashed #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.file-upload-area:hover {
+  border-color: #3b82f6;
+  background-color: #f0f7ff;
+}
+
+/* File list styles */
+.file-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-item-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.file-remove-btn {
+  color: #ef4444;
+  cursor: pointer;
+}
+
+.file-remove-btn:hover {
+  color: #b91c1c;
+}
+
+/* Import status styles */
+.import-status {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.import-status.processing {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.import-status.success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.import-status.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

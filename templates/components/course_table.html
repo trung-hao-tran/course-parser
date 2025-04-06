@@ -1,0 +1,67 @@
+<!-- Course Table -->
+<div class="bg-white rounded-lg shadow overflow-x-auto flex-grow flex flex-col">
+    <div class="overflow-y-auto flex-grow">
+        <table class="min-w-full table-fixed h-full">
+            <thead class="sticky top-0 z-10">
+                <tr class="bg-gray-50">
+                    <th @click="sortCourses('course_symbol')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Symbol
+                    </th>
+                    <th @click="sortCourses('course_name')"
+                        class="w-2/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Name
+                    </th>
+                    <th @click="sortCourses('date')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Date
+                    </th>
+                    <th @click="sortCourses('week')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Week
+                    </th>
+                    <th @click="sortCourses('class')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Class
+                    </th>
+                    <th @click="sortCourses('hall')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Hall
+                    </th>
+                    <th @click="sortCourses('period')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Period
+                    </th>
+                    <th @click="sortCourses('teacher_1')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Teacher 1
+                    </th>
+                    <th @click="sortCourses('teacher_2')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Teacher 2
+                    </th>
+                    <th @click="sortCourses('comment')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Comment
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="(course, index) in filteredCourses" :key="index">
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-3 py-2 text-sm" x-text="course.course_symbol"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.course_name"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.date"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.week"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.class"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.hall"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.period"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.teacher_1"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.teacher_2"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.comment"></td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>

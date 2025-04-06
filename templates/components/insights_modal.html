@@ -1,0 +1,91 @@
+<!-- Insights Modal -->
+<div x-show="showInsightsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+
+    <div class="bg-white rounded-lg p-6 w-[80%] max-h-[80vh] overflow-y-auto" @click.away="showInsightsModal = false"
+        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="transform scale-95 opacity-0"
+        x-transition:enter-end="transform scale-100 opacity-100" x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="transform scale-100 opacity-100"
+        x-transition:leave-end="transform scale-95 opacity-0">
+
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-900">Teaching Insights</h3>
+            <button @click="showInsightsModal = false" class="text-gray-400 hover:text-gray-500">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-blue-800">Total Teachers</h4>
+                <p class="text-2xl font-bold text-blue-600" x-text="teacherStats.totalTeachers"></p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-green-800">Total Subjects</h4>
+                <p class="text-2xl font-bold text-green-600" x-text="teacherStats.totalSubjects"></p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-purple-800">Total Periods</h4>
+                <p class="text-2xl font-bold text-purple-600" x-text="teacherStats.totalPeriods"></p>
+            </div>
+        </div>
+
+        <!-- Teachers Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Teacher Name
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Subjects Count
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Classes Taught
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Periods Count
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Subject List
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <template x-for="teacher in teacherStats.teachers" :key="teacher.name">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                                x-text="teacher.name"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                                x-text="teacher.subjectsCount"></td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="cls in teacher.classes" :key="cls">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                                            x-text="cls"></span>
+                                    </template>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="teacher.periodsCount">
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="subject in teacher.subjects" :key="subject">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                            x-text="subject"></span>
+                                    </template>
+                                </div>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

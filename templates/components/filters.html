@@ -1,0 +1,200 @@
+<!-- Filter Section -->
+<div class="mb-6 flex-shrink-0">
+    <!-- Filter Dropdowns Row -->
+    <div class="flex flex-wrap gap-4 mb-4">
+        <!-- Symbol Filter (Numeric Part) -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Symbol <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="symbolSearch" placeholder="Search symbols..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('symbol_numeric', symbolSearch)" :key="option">
+                            <div @click="selectFilter('symbol_numeric', option)"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'symbol-'+option" :value="option"
+                                    @change="selectFilter('symbol_numeric', option)"
+                                    :checked="isFilterSelected('symbol_numeric', option)" class="mr-2">
+                                <label :for="'symbol-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Filter (Symbol Suffix) -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Event <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="eventSearch" placeholder="Search events..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('symbol_suffix', eventSearch)" :key="option">
+                            <div @click="selectFilter('symbol_suffix', option)"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'event-'+option" :value="option"
+                                    @change="selectFilter('symbol_suffix', option)"
+                                    :checked="isFilterSelected('symbol_suffix', option)" class="mr-2">
+                                <label :for="'event-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Week Filter -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Week <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="weekSearch" placeholder="Search weeks..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('week', weekSearch)" :key="option">
+                            <div @click="selectFilter('week', option); open = false"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'week-'+option" :value="option"
+                                    @change="selectFilter('week', option)" :checked="isFilterSelected('week', option)"
+                                    class="mr-2">
+                                <label :for="'week-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Filter -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Class <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="classSearch" placeholder="Search classes..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('class', classSearch)" :key="option">
+                            <div @click="selectFilter('class', option); open = false"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'class-'+option" :value="option"
+                                    @change="selectFilter('class', option)" :checked="isFilterSelected('class', option)"
+                                    class="mr-2">
+                                <label :for="'class-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hall Filter -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Hall <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="hallSearch" placeholder="Search halls..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('hall', hallSearch)" :key="option">
+                            <div @click="selectFilter('hall', option); open = false"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'hall-'+option" :value="option"
+                                    @change="selectFilter('hall', option)" :checked="isFilterSelected('hall', option)"
+                                    class="mr-2">
+                                <label :for="'hall-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Period Filter -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Period <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="periodSearch" placeholder="Search periods..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('period', periodSearch)" :key="option">
+                            <div @click="selectFilter('period', option); open = false"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'period-'+option" :value="option"
+                                    @change="selectFilter('period', option)"
+                                    :checked="isFilterSelected('period', option)" class="mr-2">
+                                <label :for="'period-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Filter -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open"
+                class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
+                Teacher <i class="fas fa-chevron-down float-right mt-1"></i>
+            </button>
+            <div x-show="open" @click.away="open = false"
+                class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
+                <div class="p-2">
+                    <input type="text" x-model="teacherSearch" placeholder="Search teachers..."
+                        class="w-full px-3 py-2 border rounded-md mb-2">
+                    <div class="max-h-60 overflow-y-auto">
+                        <template x-for="option in getFilterOptions('teacher', teacherSearch)" :key="option">
+                            <div @click="selectFilter('teacher', option); open = false"
+                                class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
+                                <input type="checkbox" :id="'teacher-'+option" :value="option"
+                                    @change="selectFilter('teacher', option)"
+                                    :checked="isFilterSelected('teacher', option)" class="mr-2">
+                                <label :for="'teacher-'+option" x-text="option" class="cursor-pointer w-full"></label>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Action Buttons Row -->
+    <div class="flex gap-3 mt-2">
+        <!-- Apply Filters Button -->
+        <button @click="applyFilters()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+            Apply Filters
+        </button>
+
+        <!-- Clear All Filters Button -->
+        <button @click="clearAllFilters()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+            Remove All Filters
+        </button>
+    </div>
+</div>

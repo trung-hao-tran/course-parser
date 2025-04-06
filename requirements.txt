@@ -1,0 +1,9 @@
+pandas>=1.5.0
+matplotlib>=3.5.0
+seaborn>=0.12.0
+openpyxl>=3.0.0
+flask>=2.0.1
+flask-cors>=3.0.10
+flaskwebgui>=1.1.0
+waitress>=2.0.0
+pyinstaller>=6.4.0
