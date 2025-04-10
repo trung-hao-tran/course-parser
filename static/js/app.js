@@ -622,14 +622,9 @@ document.addEventListener('alpine:init', () => {
       const teacherMap = new Map();
 
       this.filteredCourses.forEach((course) => {
-        // Process teacher 1
+        // Process teacher 1 only
         if (course.teacher_1) {
           this.processTeacherData(teacherMap, course.teacher_1, course);
-        }
-
-        // Process teacher 2
-        if (course.teacher_2) {
-          this.processTeacherData(teacherMap, course.teacher_2, course);
         }
       });
 
