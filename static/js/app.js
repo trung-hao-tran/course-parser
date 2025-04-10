@@ -733,5 +733,21 @@ document.addEventListener('alpine:init', () => {
           });
       }
     },
+
+    getFilterFieldTranslation(field) {
+      const translations = {
+        'symbol_numeric': 'Mã môn học',
+        'symbol_suffix': 'Hình thức HL',
+        'week': 'Tuần',
+        'class': 'Đối tượng HL',
+        'hall': 'Giảng đường',
+        'period': 'Tiết học',
+        'teacher': 'Giáo viên',
+        'date': 'Ngày',
+        'course_name': 'Tên môn học',
+        'comment': 'Ghi chú'
+      };
+      return translations[field] || field;
+    },
   }));
 });

@@ -11,7 +11,7 @@
         x-transition:leave-end="transform scale-95 opacity-0">
 
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-semibold text-gray-900">Teaching Insights</h3>
+            <h3 class="text-xl font-semibold text-gray-900">Tổng hợp</h3>
             <button @click="showInsightsModal = false" class="text-gray-400 hover:text-gray-500">
                 <span class="material-icons">close</span>
             </button>
@@ -20,15 +20,15 @@
         <!-- Stats Summary -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-blue-50 p-4 rounded-lg">
-                <h4 class="text-sm font-medium text-blue-800">Total Teachers</h4>
+                <h4 class="text-sm font-medium text-blue-800">Tổng số Giáo viên</h4>
                 <p class="text-2xl font-bold text-blue-600" x-text="teacherStats.totalTeachers"></p>
             </div>
             <div class="bg-green-50 p-4 rounded-lg">
-                <h4 class="text-sm font-medium text-green-800">Total Subjects</h4>
+                <h4 class="text-sm font-medium text-green-800">Tổng số Môn học</h4>
                 <p class="text-2xl font-bold text-green-600" x-text="teacherStats.totalSubjects"></p>
             </div>
             <div class="bg-purple-50 p-4 rounded-lg">
-                <h4 class="text-sm font-medium text-purple-800">Total Periods</h4>
+                <h4 class="text-sm font-medium text-purple-800">Tổng số Tiết học</h4>
                 <p class="text-2xl font-bold text-purple-600" x-text="teacherStats.totalPeriods"></p>
             </div>
         </div>
@@ -39,19 +39,19 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Teacher Name
+                            Giáo viên
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Subjects Count
+                            Số Môn học
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Classes Taught
+                            Đối tượng HL
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Periods Count
+                            Số Tiết học
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Subject List
+                            Danh sách Môn học
                         </th>
                     </tr>
                 </thead>

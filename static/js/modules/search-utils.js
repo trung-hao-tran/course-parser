@@ -49,9 +49,21 @@ const SearchUtils = {
       ];
     } else if (field === 'symbol_suffix') {
       // Get all unique suffix parts of course symbols
-      allValues = [
+      const suffixes = [
         ...new Set(courses.map((course) => FilterUtils.getSymbolSuffix(course.course_symbol)).filter(Boolean)),
       ];
+      
+      // Add translations for event types
+      allValues = suffixes.map(suffix => {
+        switch(suffix.toUpperCase()) {
+          case 'H':
+            return 'H - Thực hành';
+          case 'K':
+            return 'K - Kiểm tra';
+          default:
+            return suffix;
+        }
+      });
     } else if (field === 'teacher') {
       // Special handling for teachers - combine teacher_1 and teacher_2 fields
       const teacherValues = new Set();

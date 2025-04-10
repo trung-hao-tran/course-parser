@@ -6,7 +6,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Symbol <i class="fas fa-chevron-down float-right mt-1"></i>
+                Mã môn học <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -32,7 +32,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Event <i class="fas fa-chevron-down float-right mt-1"></i>
+                Hình thức HL <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -58,7 +58,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Week <i class="fas fa-chevron-down float-right mt-1"></i>
+                Tuần <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -84,7 +84,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Class <i class="fas fa-chevron-down float-right mt-1"></i>
+                Đối tượng HL <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -110,7 +110,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Hall <i class="fas fa-chevron-down float-right mt-1"></i>
+                Giảng đường <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -136,7 +136,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Period <i class="fas fa-chevron-down float-right mt-1"></i>
+                Tiết học <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -162,7 +162,7 @@
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                 class="w-48 px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left">
-                Teacher <i class="fas fa-chevron-down float-right mt-1"></i>
+                Giáo viên <i class="fas fa-chevron-down float-right mt-1"></i>
             </button>
             <div x-show="open" @click.away="open = false"
                 class="absolute z-20 mt-1 w-48 bg-white border rounded-md shadow-lg">
@@ -189,12 +189,12 @@
     <div class="flex gap-3 mt-2">
         <!-- Apply Filters Button -->
         <button @click="applyFilters()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-            Apply Filters
+            Áp dụng bộ lọc
         </button>
 
         <!-- Clear All Filters Button -->
         <button @click="clearAllFilters()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-            Remove All Filters
+            Xóa bộ lọc
         </button>
     </div>
 </div>
