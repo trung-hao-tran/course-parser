@@ -53,18 +53,24 @@ class CourseManagementSystem:
             for row in range(table_top_row + 1, table_bottom_row + 1):
                 symbol = sheet.cell(row=row, column=start_col_idx).value
                 course_name = sheet.cell(row=row, column=start_col_idx + 1).value
+                classes = sheet.cell(row=row, column=end_col_idx - 2).value
                 teacher1 = sheet.cell(row=row, column=end_col_idx - 1).value
                 teacher2 = sheet.cell(row=row, column=end_col_idx).value
 
                 if symbol and course_name:
-                    course_details.append([
-                        symbol,
-                        course_name, 
-                        teacher1, 
-                        teacher2, 
-                        sheet_name
-                    ])
-                    entries_in_page += 1
+                    if classes:
+                        class_list = [c.strip() for c in str(classes).split(',')]
+                        for class_name in class_list:
+                            if class_name:
+                                course_details.append([
+                                    symbol,
+                                    course_name, 
+                                    teacher1, 
+                                    teacher2,
+                                    class_name,
+                                    sheet_name
+                                ])
+                                entries_in_page += 1
             logger.info(f"--------------------------------------------------------------------------------")
             logger.info(f"Added {entries_in_page} course details from page {page_num} in {sheet_name}")
             logger.info(f"--------------------------------------------------------------------------------")
@@ -258,26 +264,26 @@ class CourseManagementSystem:
         # Store course details
         if course_details:
             # Check if the course_details list items have the correct number of elements
-            # The SQL query expects 5 parameters: course_symbol, course_name, teacher_1, teacher_2, data_origin
-            # But the processed_details might only have 4 elements if data_origin was removed
+            # The SQL query expects 6 parameters: course_symbol, course_name, teacher_1, teacher_2, class, data_origin
+            # But the processed_details might only have 5 elements if data_origin was removed
             
             # Check the first item to determine the format
-            if course_details and len(course_details[0]) == 4:
-                logger.info("Course details have 4 elements, adding data_origin")
-                # Add data_origin as the 5th element if it's missing
+            if course_details and len(course_details[0]) == 5:
+                logger.info("Course details have 5 elements, adding data_origin")
+                # Add data_origin as the 6th element if it's missing
                 course_details_with_origin = []
                 for detail in course_details:
                     # Add 'unknown' as the data_origin if it's missing
                     course_details_with_origin.append(detail + ['unknown'])
                 
                 self.db_manager.execute_many(
-                    'INSERT INTO course_details (course_symbol, course_name, teacher_1, teacher_2, data_origin) VALUES (?, ?, ?, ?, ?)',
+                    'INSERT INTO course_details (course_symbol, course_name, teacher_1, teacher_2, class, data_origin) VALUES (?, ?, ?, ?, ?, ?)',
                     course_details_with_origin
                 )
             else:
-                # Use the details as is if they already have 5 elements
+                # Use the details as is if they already have 6 elements
                 self.db_manager.execute_many(
-                    'INSERT INTO course_details (course_symbol, course_name, teacher_1, teacher_2, data_origin) VALUES (?, ?, ?, ?, ?)',
+                    'INSERT INTO course_details (course_symbol, course_name, teacher_1, teacher_2, class, data_origin) VALUES (?, ?, ?, ?, ?, ?)',
                     course_details
                 )
             

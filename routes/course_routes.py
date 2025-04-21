@@ -53,7 +53,7 @@ def get_courses():
         logger.debug(f"Found {len(courses)} courses")
         
         logger.debug("Executing SELECT query on course_details table")
-        details = db_manager.execute_query('SELECT course_symbol, course_name, teacher_1, teacher_2 FROM course_details', fetch_all=True)
+        details = db_manager.execute_query('SELECT course_symbol, course_name, teacher_1, teacher_2, class FROM course_details', fetch_all=True)
         logger.debug(f"Found {len(details)} course details")
         
         # Convert to list of dictionaries for JSON response
@@ -91,13 +91,18 @@ def get_courses():
             # Find matching details and only add courses with a name
             for detail in details:
                 if detail[0] == course[0] and detail[1] and detail[1].strip():
-                    course_dict.update({
-                        'course_name': detail[1],
-                        'teacher_1': detail[2] if detail[2] is not None else '',
-                        'teacher_2': detail[3] if detail[3] is not None else ''
-                    })
-                    course_list.append(course_dict)
-                    break
+                    # Check if the class matches
+                    detail_class = detail[4] if detail[4] is not None else ''
+                    course_class = course[3] if course[3] is not None else ''
+                    
+                    if detail_class == course_class:  # Only match if classes are the same
+                        course_dict.update({
+                            'course_name': detail[1],
+                            'teacher_1': detail[2] if detail[2] is not None else '',
+                            'teacher_2': detail[3] if detail[3] is not None else ''
+                        })
+                        course_list.append(course_dict)
+                        break
             
         logger.debug(f"Returning {len(course_list)} formatted courses (filtered out courses without names)")
         logger.debug(f"First course example: {course_list[0] if course_list else 'No courses'}")

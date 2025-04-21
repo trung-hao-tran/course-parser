@@ -42,6 +42,7 @@ class DatabaseManager:
                     course_name TEXT NOT NULL,
                     teacher_1 TEXT,
                     teacher_2 TEXT,
+                    class TEXT,
                     data_origin TEXT
                 )
             ''')
