@@ -17,8 +17,163 @@
             </button>
         </div>
 
-        <!-- Stats Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Weekly View (show only when single week) -->
+        <div x-show="showWeeklyView" class="mb-6">
+            <h3 class="text-lg font-semibold mb-4" x-text="weeklyTableData.weekNumber"></h3>
+            
+            <!-- Weekly View Filters -->
+            <div class="flex flex-wrap gap-4 mb-6">
+                <!-- Courses Filter -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                        class="px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left flex items-center">
+                        <span>Môn học</span>
+                        <span class="ml-2 bg-blue-500 text-white rounded-full px-2 py-0.5 text-xs"
+                            x-text="weeklyViewSelectedFilters.courses.length"></span>
+                        <span class="material-icons ml-2 text-lg">expand_more</span>
+                    </button>
+                    <div x-show="open" @click.away="open = false"
+                        class="absolute z-20 mt-1 w-80 bg-white border rounded-md shadow-lg max-h-80 overflow-y-auto">
+                        <div class="p-3 border-b flex justify-between">
+                            <span class="font-medium">Lọc theo Môn học</span>
+                            <div class="space-x-2">
+                                <button @click="weeklyViewSelectedFilters.courses = [...weeklyViewFilters.courses]" 
+                                    class="text-blue-500 text-sm hover:underline">Chọn tất cả</button>
+                                <button @click="weeklyViewSelectedFilters.courses = []" 
+                                    class="text-red-500 text-sm hover:underline">Bỏ tất cả</button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            <template x-for="course in weeklyViewFilters.courses" :key="course">
+                                <div class="flex items-center">
+                                    <input type="checkbox" :id="'course-'+course" :value="course"
+                                        @change="toggleWeeklyViewFilter('courses', course)" 
+                                        :checked="isWeeklyViewFilterSelected('courses', course)"
+                                        class="mr-2">
+                                    <label :for="'course-'+course" x-text="course" class="text-sm cursor-pointer"></label>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teachers Filter -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                        class="px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left flex items-center">
+                        <span>Giáo viên</span>
+                        <span class="ml-2 bg-green-500 text-white rounded-full px-2 py-0.5 text-xs"
+                            x-text="weeklyViewSelectedFilters.teachers.length"></span>
+                        <span class="material-icons ml-2 text-lg">expand_more</span>
+                    </button>
+                    <div x-show="open" @click.away="open = false"
+                        class="absolute z-20 mt-1 w-80 bg-white border rounded-md shadow-lg max-h-80 overflow-y-auto">
+                        <div class="p-3 border-b flex justify-between">
+                            <span class="font-medium">Lọc theo Giáo viên</span>
+                            <div class="space-x-2">
+                                <button @click="weeklyViewSelectedFilters.teachers = [...weeklyViewFilters.teachers]" 
+                                    class="text-blue-500 text-sm hover:underline">Chọn tất cả</button>
+                                <button @click="weeklyViewSelectedFilters.teachers = []" 
+                                    class="text-red-500 text-sm hover:underline">Bỏ tất cả</button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            <template x-for="teacher in weeklyViewFilters.teachers" :key="teacher">
+                                <div class="flex items-center">
+                                    <input type="checkbox" :id="'teacher-'+teacher" :value="teacher"
+                                        @change="toggleWeeklyViewFilter('teachers', teacher)" 
+                                        :checked="isWeeklyViewFilterSelected('teachers', teacher)"
+                                        class="mr-2">
+                                    <label :for="'teacher-'+teacher" x-text="teacher" class="text-sm cursor-pointer"></label>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Halls Filter -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                        class="px-4 py-2 bg-white border rounded-lg shadow-sm hover:bg-gray-50 text-left flex items-center">
+                        <span>Giảng đường</span>
+                        <span class="ml-2 bg-purple-500 text-white rounded-full px-2 py-0.5 text-xs"
+                            x-text="weeklyViewSelectedFilters.halls.length"></span>
+                        <span class="material-icons ml-2 text-lg">expand_more</span>
+                    </button>
+                    <div x-show="open" @click.away="open = false"
+                        class="absolute z-20 mt-1 w-80 bg-white border rounded-md shadow-lg max-h-80 overflow-y-auto">
+                        <div class="p-3 border-b flex justify-between">
+                            <span class="font-medium">Lọc theo Giảng đường</span>
+                            <div class="space-x-2">
+                                <button @click="weeklyViewSelectedFilters.halls = [...weeklyViewFilters.halls]" 
+                                    class="text-blue-500 text-sm hover:underline">Chọn tất cả</button>
+                                <button @click="weeklyViewSelectedFilters.halls = []" 
+                                    class="text-red-500 text-sm hover:underline">Bỏ tất cả</button>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            <template x-for="hall in weeklyViewFilters.halls" :key="hall">
+                                <div class="flex items-center">
+                                    <input type="checkbox" :id="'hall-'+hall" :value="hall"
+                                        @change="toggleWeeklyViewFilter('halls', hall)" 
+                                        :checked="isWeeklyViewFilterSelected('halls', hall)"
+                                        class="mr-2">
+                                    <label :for="'hall-'+hall" x-text="hall" class="text-sm cursor-pointer"></label>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Weekly Schedule Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-collapse border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="border border-gray-200 px-4 py-2 text-gray-700 font-medium">Thứ / Ngày</th>
+                            <th class="border border-gray-200 px-4 py-2 text-gray-700 font-medium">Sáng</th>
+                            <th class="border border-gray-200 px-4 py-2 text-gray-700 font-medium">Chiều</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(day, dayKey) in ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']" :key="dayKey">
+                            <tr class="border-b border-gray-200">
+                                <td class="border border-gray-200 px-4 py-3 text-gray-800 bg-gray-50">
+                                    <div class="font-semibold" x-text="day"></div>
+                                    <div x-text="weeklyTableData.days[day]?.date || ''"></div>
+                                </td>
+                                
+                                <!-- Morning -->
+                                <td class="border border-gray-200 px-4 py-3 align-top">
+                                    <div class="space-y-3">
+                                        <template x-for="(entry, entryIndex) in weeklyTableData.days[day]?.morning || []" :key="entryIndex">
+                                            <div x-show="shouldShowEntry(entry)" class="text-sm">
+                                                <div class="font-medium" x-text="'Period: ' + entry.period + ' / ' + entry.course_symbol + ' / ' + entry.hall + ' / ' + entry.teacher + ' / ' + entry.class"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </td>
+                                
+                                <!-- Afternoon -->
+                                <td class="border border-gray-200 px-4 py-3 align-top">
+                                    <div class="space-y-3">
+                                        <template x-for="(entry, entryIndex) in weeklyTableData.days[day]?.afternoon || []" :key="entryIndex">
+                                            <div x-show="shouldShowEntry(entry)" class="text-sm">
+                                                <div class="font-medium" x-text="'Period: ' + entry.period + ' / ' + entry.course_symbol + ' / ' + entry.hall + ' / ' + entry.teacher + ' / ' + entry.class"></div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stats Summary (only show when not in weekly view)-->
+        <div x-show="!showWeeklyView" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-blue-50 p-4 rounded-lg">
                 <h4 class="text-sm font-medium text-blue-800">Tổng số Giáo viên</h4>
                 <p class="text-2xl font-bold text-blue-600" x-text="teacherStats.totalTeachers"></p>
@@ -33,8 +188,8 @@
             </div>
         </div>
 
-        <!-- Teachers Table -->
-        <div class="overflow-x-auto">
+        <!-- Teachers Table (only show when not in weekly view) -->
+        <div x-show="!showWeeklyView" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>

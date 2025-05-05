@@ -148,6 +148,22 @@ class CourseManagementSystem:
                         if all([year, month, day]):
                             dt = datetime(year, month, day)
                             
+                            # Calculate day of the week
+                            day_name = dt.strftime('%A')  # Monday, Tuesday, etc.
+                            
+                            # Map English day names to Vietnamese abbreviations
+                            day_of_week_map = {
+                                'Monday': 'T2',
+                                'Tuesday': 'T3',
+                                'Wednesday': 'T4',
+                                'Thursday': 'T5',
+                                'Friday': 'T6',
+                                'Saturday': 'T7',
+                                'Sunday': 'CN'
+                            }
+                            
+                            day_of_week = day_of_week_map.get(day_name, day_name)
+                            
                             # Extract event letter from course_value if present
                             course_symbol = str(course_value)
                             event = None
@@ -166,7 +182,8 @@ class CourseManagementSystem:
                                 comment.rstrip(),
                                 event,
                                 sheet_name,
-                                detail_origin
+                                detail_origin,
+                                day_of_week  # Add day of week to the data
                             ])
                             entries_in_page += 1
 
@@ -292,7 +309,7 @@ class CourseManagementSystem:
         # Store courses with event data
         if courses:
             self.db_manager.execute_many(
-                'INSERT INTO courses (course_symbol, course_datetime, week, class, period, comment, event, data_origin, detail_origin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT INTO courses (course_symbol, course_datetime, week, class, period, comment, event, data_origin, detail_origin, day_of_week) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 courses
             )
             logger.info(f"Stored {len(courses)} courses in database")
@@ -312,7 +329,8 @@ class CourseManagementSystem:
                 c.event,
                 c.data_origin,
                 c.detail_origin,
-                c.hall
+                c.hall,
+                c.day_of_week
             FROM courses c
             LEFT JOIN course_details cd 
             ON c.course_symbol = cd.course_symbol 
@@ -326,7 +344,7 @@ class CourseManagementSystem:
             writer = csv.writer(f)
             writer.writerow([
                 "Course Symbol", "Date", "Week", "Teacher 1", "Teacher 2",
-                "Class", "Period", "Comment", "Event", "Course Origin", "Detail Origin", "Hall"
+                "Class", "Period", "Comment", "Event", "Course Origin", "Detail Origin", "Hall", "Day of Week"
             ])
             
             for row in rows:
@@ -343,7 +361,8 @@ class CourseManagementSystem:
                     row[8] or "N/A",
                     row[9],
                     row[10] or "No matching detail",
-                    row[11] or "N/A"
+                    row[11] or "N/A",
+                    row[12] or "N/A"
                 ])
 
         logger.info(f"Data exported to {output_file}")

@@ -16,6 +16,10 @@
                         class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                         Ngày
                     </th>
+                    <th @click="sortCourses('day_of_week')"
+                        class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                        Thứ
+                    </th>
                     <th @click="sortCourses('week')"
                         class="w-1/12 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                         Tuần
@@ -52,6 +56,7 @@
                         <td class="px-3 py-2 text-sm" x-text="course.course_symbol"></td>
                         <td class="px-3 py-2 text-sm" x-text="course.course_name"></td>
                         <td class="px-3 py-2 text-sm" x-text="course.date"></td>
+                        <td class="px-3 py-2 text-sm" x-text="course.day_of_week"></td>
                         <td class="px-3 py-2 text-sm" x-text="course.week"></td>
                         <td class="px-3 py-2 text-sm" x-text="course.class"></td>
                         <td class="px-3 py-2 text-sm" x-text="course.hall === 'TT' ? 'Thao trường' : course.hall"></td>

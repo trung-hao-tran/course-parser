@@ -59,7 +59,8 @@ class DatabaseManager:
                     event TEXT,
                     data_origin TEXT,
                     detail_origin TEXT,
-                    hall TEXT
+                    hall TEXT,
+                    day_of_week TEXT
                 )
             ''')
             

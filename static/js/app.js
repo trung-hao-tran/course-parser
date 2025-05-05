@@ -17,6 +17,7 @@ document.addEventListener('alpine:init', () => {
     teacherSearch: '',
     eventSearch: '',
     hallSearch: '',
+    dayOfWeekSearch: '',
     minDate: '',
     maxDate: '',
     // Date range filters
@@ -35,6 +36,21 @@ document.addEventListener('alpine:init', () => {
       totalSubjects: 0,
       totalPeriods: 0,
       teachers: [],
+    },
+    weeklyTableData: {
+      weekNumber: "",
+      days: {},
+    },
+    showWeeklyView: false,
+    weeklyViewFilters: {
+      courses: [],
+      teachers: [],
+      halls: []
+    },
+    weeklyViewSelectedFilters: {
+      courses: [],
+      teachers: [],
+      halls: []
     },
 
     init() {
@@ -617,7 +633,123 @@ document.addEventListener('alpine:init', () => {
     getNumericSymbol: FilterUtils.getNumericSymbol,
     getSymbolSuffix: FilterUtils.getSymbolSuffix,
 
+    // Check if filtered courses contain only a single week
+    isSingleWeek() {
+      // Get unique weeks from filtered courses
+      const uniqueWeeks = [...new Set(this.filteredCourses.map(course => course.week).filter(Boolean))];
+      return uniqueWeeks.length === 1;
+    },
+
+    // Generate weekly table data for the insights view
+    generateWeeklyTableData() {
+      // Get the week number
+      const weekNumber = this.filteredCourses[0]?.week || "";
+      
+      // Initialize data structure
+      const weeklyData = {
+        weekNumber,
+        days: {}
+      };
+      
+      // Initialize days structure (T2 through CN)
+      const dayOrder = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+      dayOrder.forEach(day => {
+        weeklyData.days[day] = {
+          date: "",
+          morning: [],
+          afternoon: []
+        };
+      });
+      
+      // Group courses by day of week
+      this.filteredCourses.forEach(course => {
+        const dayOfWeek = course.day_of_week;
+        if (!dayOfWeek || !weeklyData.days[dayOfWeek]) return;
+        
+        // Set the date for this day if not already set
+        if (!weeklyData.days[dayOfWeek].date && course.date) {
+          weeklyData.days[dayOfWeek].date = course.date;
+        }
+        
+        // Determine if morning or afternoon based on period
+        const period = parseInt(course.period, 10);
+        const timeSlot = (period >= 1 && period <= 4) ? 'morning' : 'afternoon';
+        
+        // Create the entry for this course
+        const entry = {
+          period: course.period,
+          course_symbol: course.course_symbol,
+          hall: course.hall || "",
+          teacher: course.teacher_1 || "",
+          class: course.class || ""
+        };
+        
+        // Add to the appropriate time slot
+        weeklyData.days[dayOfWeek][timeSlot].push(entry);
+      });
+      
+      // Post-process: sort and group entries
+      Object.keys(weeklyData.days).forEach(day => {
+        // Sort morning entries by period
+        weeklyData.days[day].morning.sort((a, b) => {
+          return parseInt(a.period, 10) - parseInt(b.period, 10);
+        });
+        
+        // Sort afternoon entries by period
+        weeklyData.days[day].afternoon.sort((a, b) => {
+          return parseInt(a.period, 10) - parseInt(b.period, 10);
+        });
+        
+        // Group entries with the same course, teacher, and hall
+        weeklyData.days[day].morning = this.groupSimilarEntries(weeklyData.days[day].morning);
+        weeklyData.days[day].afternoon = this.groupSimilarEntries(weeklyData.days[day].afternoon);
+      });
+      
+      return weeklyData;
+    },
+    
+    // Helper function to group similar entries by combining their classes
+    groupSimilarEntries(entries) {
+      const groupedMap = new Map();
+      
+      entries.forEach(entry => {
+        // Create a key based on course, teacher, hall, and period
+        const key = `${entry.period}-${entry.course_symbol}-${entry.teacher}-${entry.hall}`;
+        
+        if (groupedMap.has(key)) {
+          // If entry with same key exists, combine classes
+          const existingEntry = groupedMap.get(key);
+          const existingClasses = existingEntry.class.split(';');
+          const newClasses = entry.class.split(';');
+          
+          // Combine and deduplicate classes
+          const combinedClasses = [...new Set([...existingClasses, ...newClasses])].filter(Boolean);
+          existingEntry.class = combinedClasses.join(';');
+        } else {
+          // Add new entry to the map
+          groupedMap.set(key, {...entry});
+        }
+      });
+      
+      // Convert map back to array
+      return Array.from(groupedMap.values());
+    },
+    
+    // Format entry for display in the weekly table
+    formatEntry(entry) {
+      return `Period: ${entry.period} / ${entry.course_symbol} / ${entry.hall} / ${entry.teacher} / ${entry.class}`;
+    },
+
     calculateTeacherStats() {
+      // Check if we have only one week - if so, generate weekly table data
+      this.showWeeklyView = this.isSingleWeek();
+      
+      if (this.showWeeklyView) {
+        this.weeklyTableData = this.generateWeeklyTableData();
+        this.getWeeklyViewFilterOptions();
+      }
+      
+      // Always calculate teacher stats for the original view
       // Initialize stats object for each teacher
       const teacherMap = new Map();
 
@@ -739,10 +871,65 @@ document.addEventListener('alpine:init', () => {
         'period': 'Tiết học',
         'teacher': 'Giáo viên',
         'date': 'Ngày',
+        'day_of_week': 'Thứ',
         'course_name': 'Tên môn học',
         'comment': 'Ghi chú'
       };
       return translations[field] || field;
+    },
+
+    // Extract unique options for weekly view filters
+    getWeeklyViewFilterOptions() {
+      // Extract unique courses, teachers, and halls from the filtered courses
+      const courses = new Set();
+      const teachers = new Set();
+      const halls = new Set();
+      
+      this.filteredCourses.forEach(course => {
+        if (course.course_symbol) courses.add(course.course_symbol);
+        if (course.teacher_1) teachers.add(course.teacher_1);
+        if (course.hall) halls.add(course.hall);
+      });
+      
+      // Sort and return as arrays
+      this.weeklyViewFilters = {
+        courses: [...courses].sort(),
+        teachers: [...teachers].sort(),
+        halls: [...halls].sort()
+      };
+      
+      // Initialize selected filters with all options checked by default
+      this.weeklyViewSelectedFilters = {
+        courses: [...this.weeklyViewFilters.courses],
+        teachers: [...this.weeklyViewFilters.teachers],
+        halls: [...this.weeklyViewFilters.halls]
+      };
+    },
+    
+    // Toggle a weekly view filter
+    toggleWeeklyViewFilter(type, value) {
+      const index = this.weeklyViewSelectedFilters[type].indexOf(value);
+      if (index === -1) {
+        // Add to selected filters
+        this.weeklyViewSelectedFilters[type].push(value);
+      } else {
+        // Remove from selected filters
+        this.weeklyViewSelectedFilters[type].splice(index, 1);
+      }
+    },
+    
+    // Check if a value is in the selected filters
+    isWeeklyViewFilterSelected(type, value) {
+      return this.weeklyViewSelectedFilters[type].includes(value);
+    },
+    
+    // Apply weekly view filters to an entry
+    shouldShowEntry(entry) {
+      return (
+        this.weeklyViewSelectedFilters.courses.includes(entry.course_symbol) &&
+        this.weeklyViewSelectedFilters.teachers.includes(entry.teacher) &&
+        this.weeklyViewSelectedFilters.halls.includes(entry.hall)
+      );
     },
   }));
 });

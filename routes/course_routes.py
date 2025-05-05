@@ -41,12 +41,13 @@ def get_courses():
                     event, 
                     data_origin, 
                     detail_origin,
-                    hall
+                    hall,
+                    day_of_week
                 FROM courses
             '''
         else:
             logger.debug("Using basic query without lecture hall data")
-            query = 'SELECT course_symbol, course_datetime, week, class, period, comment, event, data_origin, detail_origin, hall FROM courses'
+            query = 'SELECT course_symbol, course_datetime, week, class, period, comment, event, data_origin, detail_origin, hall, day_of_week FROM courses'
         
         logger.debug(f"Executing SELECT query on courses table: {query}")
         courses = db_manager.execute_query(query, fetch_all=True)
@@ -85,7 +86,8 @@ def get_courses():
                 'comment': course[5] if course[5] is not None else '',
                 'origin': course[7] if course[7] is not None else '',
                 'detail_origin': course[8] if course[8] is not None else '',
-                'hall': course[9] if len(course) > 9 and course[9] is not None else ''
+                'hall': course[9] if len(course) > 9 and course[9] is not None else '',
+                'day_of_week': course[10] if len(course) > 10 and course[10] is not None else ''
             }
             
             # Find matching details and only add courses with a name
