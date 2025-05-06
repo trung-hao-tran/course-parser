@@ -229,7 +229,7 @@
                                     <div class="space-y-3">
                                         <template x-for="(entry, entryIndex) in weeklyTableData.days[day]?.morning || []" :key="entryIndex">
                                             <div x-show="shouldShowEntry(entry)" class="text-sm">
-                                                <div class="font-medium" x-text="'Period: ' + entry.period + ' / ' + entry.course_symbol + ' / ' + entry.hall + ' / ' + entry.teacher + ' / ' + entry.class"></div>
+                                                <div class="font-medium" x-text="'Tiết: ' + entry.period + ' / ' + entry.course_symbol + ' / ' + entry.hall + ' / ' + entry.teacher + ' / ' + entry.class"></div>
                                             </div>
                                         </template>
                                     </div>
@@ -240,7 +240,7 @@
                                     <div class="space-y-3">
                                         <template x-for="(entry, entryIndex) in weeklyTableData.days[day]?.afternoon || []" :key="entryIndex">
                                             <div x-show="shouldShowEntry(entry)" class="text-sm">
-                                                <div class="font-medium" x-text="'Period: ' + entry.period + ' / ' + entry.course_symbol + ' / ' + entry.hall + ' / ' + entry.teacher + ' / ' + entry.class"></div>
+                                                <div class="font-medium" x-text="'Tiết: ' + entry.period + ' / ' + entry.course_symbol + ' / ' + entry.hall + ' / ' + entry.teacher + ' / ' + entry.class"></div>
                                             </div>
                                         </template>
                                     </div>
