@@ -931,5 +931,34 @@ document.addEventListener('alpine:init', () => {
         this.weeklyViewSelectedFilters.halls.includes(entry.hall)
       );
     },
+    
+    // Export weekly view table to PDF
+    exportWeeklyTableToPDF() {
+      // Make sure we're using html2pdf.js from CDN
+      if (typeof html2pdf === 'undefined') {
+        console.error('html2pdf is not defined. Make sure the library is loaded.');
+        alert('Could not generate PDF. Please try again later.');
+        return;
+      }
+      
+      // Get the table element
+      const weeklyTable = document.getElementById('weekly-table-container');
+      if (!weeklyTable) {
+        console.error('Weekly table element not found.');
+        return;
+      }
+      
+      // Set PDF options
+      const options = {
+        margin: 10,
+        filename: `weekly-schedule-week-${this.weeklyTableData.weekNumber}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+      
+      // Generate PDF
+      html2pdf().set(options).from(weeklyTable).save();
+    },
   }));
 });
