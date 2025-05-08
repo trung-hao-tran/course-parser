@@ -673,7 +673,7 @@ document.addEventListener('alpine:init', () => {
         
         // Determine if morning or afternoon based on period
         const period = parseInt(course.period, 10);
-        const timeSlot = (period >= 1 && period <= 4) ? 'morning' : 'afternoon';
+        const timeSlot = (period >= 1 && period <= 6) ? 'morning' : 'afternoon';
         
         // Create the entry for this course
         const entry = {
