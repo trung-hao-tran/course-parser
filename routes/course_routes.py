@@ -52,18 +52,18 @@ def get_courses():
         # Base query to select courses
         base_query = '''
             SELECT 
-                course_symbol, 
-                course_datetime, 
-                week, 
-                class, 
-                period, 
-                comment, 
-                event, 
-                data_origin, 
-                detail_origin,
-                hall,
-                day_of_week
-            FROM courses
+                c.course_symbol, 
+                c.course_datetime, 
+                c.week, 
+                c.class, 
+                c.period, 
+                c.comment, 
+                c.event, 
+                c.data_origin, 
+                c.detail_origin,
+                c.hall,
+                c.day_of_week
+            FROM courses c
         '''
         
         # Build where clauses and params
@@ -72,17 +72,17 @@ def get_courses():
         
         # Handle date range filters
         if start_date:
-            where_clauses.append("course_datetime >= ?")
+            where_clauses.append("c.course_datetime >= ?")
             params.append(start_date)
         if end_date:
-            where_clauses.append("course_datetime <= ?")
+            where_clauses.append("c.course_datetime <= ?")
             params.append(end_date + " 23:59:59")  # Include the entire day
         
         # Handle standard filters - same field values use OR, different fields use AND
         for field, values in filter_groups.items():
             field_clauses = []
             for value in values:
-                field_clauses.append(f"{field} LIKE ?")
+                field_clauses.append(f"c.{field} LIKE ?")
                 params.append(f"%{value}%")
             
             if field_clauses:
@@ -92,7 +92,7 @@ def get_courses():
         if course_symbol_values:
             symbol_clauses = []
             for course_symbol in course_symbol_values:
-                symbol_clauses.append("course_symbol LIKE ?")
+                symbol_clauses.append("c.course_symbol LIKE ?")
                 params.append(f"{course_symbol}%")
             
             where_clauses.append(f"({' OR '.join(symbol_clauses)})")
@@ -123,17 +123,17 @@ def get_courses():
                     if suffix_symbols:
                         # Create placeholders for all matching symbols
                         placeholders = ','.join(['?'] * len(suffix_symbols))
-                        event_clauses.append(f"(course_symbol IN ({placeholders}) OR event = ?)")
+                        event_clauses.append(f"(c.course_symbol IN ({placeholders}) OR c.event = ?)")
                         params.extend(suffix_symbols)  # Add all symbols to params
                         params.append(event)           # Also match the event field
                     else:
                         # Fallback if no specific symbols found
-                        event_clauses.append("(course_symbol LIKE ? OR event = ?)")
+                        event_clauses.append("(c.course_symbol LIKE ? OR c.event = ?)")
                         params.append(f"%{event}")  # Use % to match any prefix
                         params.append(event)        # Also match the event field
                 else:
                     # For other event types, use the simple pattern
-                    event_clauses.append("(course_symbol LIKE ? OR event = ?)")
+                    event_clauses.append("(c.course_symbol LIKE ? OR c.event = ?)")
                     params.append(f"%{event}")  # Use % to match any prefix
                     params.append(event)        # Also match the event field
             
@@ -173,13 +173,13 @@ def get_courses():
         # Handle search query across multiple fields
         if search:
             search_clauses = [
-                "course_symbol LIKE ?",
-                "week LIKE ?",
-                "class LIKE ?",
-                "period LIKE ?",
-                "comment LIKE ?",
-                "hall LIKE ?",
-                "day_of_week LIKE ?",
+                "c.course_symbol LIKE ?",
+                "c.week LIKE ?",
+                "c.class LIKE ?",
+                "c.period LIKE ?",
+                "c.comment LIKE ?",
+                "c.hall LIKE ?",
+                "c.day_of_week LIKE ?",
             ]
             where_clauses.append(f"({' OR '.join(search_clauses)})")
             search_param = f"%{search}%"
@@ -456,18 +456,18 @@ def get_courses_for_insights():
         # Base query to select courses
         base_query = '''
             SELECT 
-                course_symbol, 
-                course_datetime, 
-                week, 
-                class, 
-                period, 
-                comment, 
-                event, 
-                data_origin, 
-                detail_origin,
-                hall,
-                day_of_week
-            FROM courses
+                c.course_symbol, 
+                c.course_datetime, 
+                c.week, 
+                c.class, 
+                c.period, 
+                c.comment, 
+                c.event, 
+                c.data_origin, 
+                c.detail_origin,
+                c.hall,
+                c.day_of_week
+            FROM courses c
         '''
         
         # Build where clauses and params
@@ -476,17 +476,17 @@ def get_courses_for_insights():
         
         # Handle date range filters
         if start_date:
-            where_clauses.append("course_datetime >= ?")
+            where_clauses.append("c.course_datetime >= ?")
             params.append(start_date)
         if end_date:
-            where_clauses.append("course_datetime <= ?")
+            where_clauses.append("c.course_datetime <= ?")
             params.append(end_date + " 23:59:59")  # Include the entire day
         
         # Handle standard filters - same field values use OR, different fields use AND
         for field, values in filter_groups.items():
             field_clauses = []
             for value in values:
-                field_clauses.append(f"{field} LIKE ?")
+                field_clauses.append(f"c.{field} LIKE ?")
                 params.append(f"%{value}%")
             
             if field_clauses:
@@ -496,7 +496,7 @@ def get_courses_for_insights():
         if course_symbol_values:
             symbol_clauses = []
             for course_symbol in course_symbol_values:
-                symbol_clauses.append("course_symbol LIKE ?")
+                symbol_clauses.append("c.course_symbol LIKE ?")
                 params.append(f"{course_symbol}%")
             
             where_clauses.append(f"({' OR '.join(symbol_clauses)})")
@@ -507,7 +507,7 @@ def get_courses_for_insights():
             
             for event in event_values:
                 # For event filter, we need to match course symbols that end with the specific letter
-                event_clauses.append("(course_symbol LIKE ? OR event = ?)")
+                event_clauses.append("(c.course_symbol LIKE ? OR c.event = ?)")
                 params.append(f"%{event}")  # Use % to match any prefix
                 params.append(event)        # Also match the event field
             
@@ -547,13 +547,13 @@ def get_courses_for_insights():
         # Handle search query across multiple fields
         if search:
             search_clauses = [
-                "course_symbol LIKE ?",
-                "week LIKE ?",
-                "class LIKE ?",
-                "period LIKE ?",
-                "comment LIKE ?",
-                "hall LIKE ?",
-                "day_of_week LIKE ?",
+                "c.course_symbol LIKE ?",
+                "c.week LIKE ?",
+                "c.class LIKE ?",
+                "c.period LIKE ?",
+                "c.comment LIKE ?",
+                "c.hall LIKE ?",
+                "c.day_of_week LIKE ?",
             ]
             where_clauses.append(f"({' OR '.join(search_clauses)})")
             search_param = f"%{search}%"
