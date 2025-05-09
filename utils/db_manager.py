@@ -3,9 +3,20 @@ import threading
 import logging
 import os
 import time
+import re
 from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
+
+# Add a regex function for SQLite
+def regex_match(pattern, text):
+    if pattern is None or text is None:
+        return False
+    try:
+        return re.search(pattern, text) is not None
+    except Exception as e:
+        logger.error(f"Error in regex_match: {str(e)}")
+        return False
 
 class DatabaseManager:
     """
@@ -32,6 +43,9 @@ class DatabaseManager:
             return
             
         with self.get_connection() as conn:
+            # Register the REGEXP function
+            conn.create_function("REGEXP", 2, regex_match)
+            
             cursor = conn.cursor()
             
             # Create course tables
@@ -77,8 +91,29 @@ class DatabaseManager:
                 )
             ''')
             
+            # Create indexes for faster lookups
+            self._create_index_if_not_exists(cursor, 'idx_courses_symbol', 'courses', 'course_symbol')
+            self._create_index_if_not_exists(cursor, 'idx_courses_datetime', 'courses', 'course_datetime')
+            self._create_index_if_not_exists(cursor, 'idx_courses_class', 'courses', 'class')
+            self._create_index_if_not_exists(cursor, 'idx_course_details_symbol', 'course_details', 'course_symbol')
+            self._create_index_if_not_exists(cursor, 'idx_course_details_class', 'course_details', 'class')
+            
+            # Enable multi-threaded read operations but safe write
+            cursor.execute("PRAGMA journal_mode = WAL")
+            # Use memory-mapped I/O for better performance
+            cursor.execute("PRAGMA mmap_size = 30000000")  # 30MB should handle our dataset
+            # Set a larger cache size for better performance
+            cursor.execute("PRAGMA cache_size = -10000")  # ~10MB
+            
         self.initialized = True
-        logger.info(f"Database {self.db_name} initialized with required tables")
+        logger.info(f"Database {self.db_name} initialized with required tables and indexes")
+    
+    def _create_index_if_not_exists(self, cursor, index_name, table_name, column_name):
+        """Create an index if it doesn't exist"""
+        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='index' AND name=?", (index_name,))
+        if not cursor.fetchone():
+            cursor.execute(f"CREATE INDEX {index_name} ON {table_name}({column_name})")
+            logger.info(f"Created index {index_name} on {table_name}({column_name})")
     
     def reset_database(self):
         """Reset the database by dropping and recreating tables"""
@@ -121,6 +156,8 @@ class DatabaseManager:
                         self.connection_pool[thread_id].execute("PRAGMA foreign_keys = ON")
                         # Use WAL mode for better concurrency
                         self.connection_pool[thread_id].execute("PRAGMA journal_mode = WAL")
+                        # Register the REGEXP function
+                        self.connection_pool[thread_id].create_function("REGEXP", 2, regex_match)
                         break
                     except sqlite3.OperationalError as e:
                         if "database is locked" in str(e) and attempt < max_retries - 1:
@@ -210,4 +247,48 @@ class DatabaseManager:
             self.execute_query(query)
             logger.info(f"Added column {column_name} to table {table_name}")
             return True
-        return False 
+        return False
+    
+    def execute_paginated_query(self, base_query, where_clauses=None, params=None, sort_field=None, sort_direction='ASC', page=1, per_page=100):
+        """
+        Execute a query with pagination and complex filters
+        
+        Args:
+            base_query (str): The base SELECT query without WHERE/ORDER/LIMIT clauses
+            where_clauses (list): List of WHERE clause strings
+            params (list): List of parameters for the WHERE clauses
+            sort_field (str): Field to sort by
+            sort_direction (str): 'ASC' or 'DESC'
+            page (int): Page number (1-based)
+            per_page (int): Number of items per page
+            
+        Returns:
+            tuple: (results, total_count)
+        """
+        params = params or []
+        where_clauses = where_clauses or []
+        
+        # Construct the full query
+        query = base_query
+        
+        # Add where clauses
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+        
+        # Add ordering
+        if sort_field:
+            direction = "DESC" if sort_direction.upper() == 'DESC' else "ASC"
+            query += f" ORDER BY {sort_field} {direction}"
+        
+        # Get total count for pagination info
+        count_query = f"SELECT COUNT(*) FROM ({query})"
+        total_count = self.execute_query(count_query, params, fetch_one=True)[0]
+        
+        # Add pagination
+        query += " LIMIT ? OFFSET ?"
+        params.extend([per_page, (page - 1) * per_page])
+        
+        # Execute the query
+        results = self.execute_query(query, params, fetch_all=True)
+        
+        return results, total_count 

@@ -14,6 +14,18 @@
                     <input type="text" x-model="symbolSearch" placeholder="Search symbols..."
                         class="w-full px-3 py-2 border rounded-md mb-2">
                     <div class="max-h-60 overflow-y-auto">
+                        <!-- Show loading message if filter options aren't loaded -->
+                        <div x-show="!filterOptionsLoaded" class="py-2 text-center text-gray-500">
+                            Loading symbol options...
+                        </div>
+                        
+                        <!-- Show empty state if no options are available -->
+                        <div x-show="filterOptionsLoaded && getFilterOptions('symbol_numeric', symbolSearch).length === 0" 
+                             class="py-2 text-center text-gray-500">
+                            No symbols found.
+                        </div>
+                        
+                        <!-- Show symbol options when available -->
                         <template x-for="option in getFilterOptions('symbol_numeric', symbolSearch)" :key="option">
                             <div @click="selectFilter('symbol_numeric', option)"
                                 class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">
@@ -40,6 +52,18 @@
                     <input type="text" x-model="eventSearch" placeholder="Search events..."
                         class="w-full px-3 py-2 border rounded-md mb-2">
                     <div class="max-h-60 overflow-y-auto">
+                        <!-- Show loading message if filter options aren't loaded -->
+                        <div x-show="!filterOptionsLoaded" class="py-2 text-center text-gray-500">
+                            Loading event options...
+                        </div>
+                        
+                        <!-- Show empty state if no options are available -->
+                        <div x-show="filterOptionsLoaded && getFilterOptions('symbol_suffix', eventSearch).length === 0" 
+                             class="py-2 text-center text-gray-500">
+                            No events found.
+                        </div>
+                        
+                        <!-- Show event options when available -->
                         <template x-for="option in getFilterOptions('symbol_suffix', eventSearch)" :key="option">
                             <div @click="selectFilter('symbol_suffix', option)"
                                 class="flex items-center p-2 hover:bg-gray-100 cursor-pointer">

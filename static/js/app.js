@@ -52,15 +52,29 @@ document.addEventListener('alpine:init', () => {
       teachers: [],
       halls: []
     },
+    currentPage: 1,
+    perPage: 100,
+    totalCourses: 0,
+    totalPages: 1,
+    isLoading: false,
+    // Add filterOptions cache
+    filterOptions: {},
+    filterOptionsLoaded: false,
+    loggedFilterOptions: {},
 
     init() {
-      this.fetchCourses().then(() => {
+      // Fetch courses and filter options in parallel
+      Promise.all([
+        this.fetchCourses(),
+        this.fetchFilterOptions()
+      ]).then(() => {
         // Initial filtering
-        this.filterCourses();
-        console.log('Initial filtering complete');
-
+        console.log('Initial data loading complete');
+        
         // Initialize date picker after data is loaded
         this.initDateRangePicker();
+      }).catch(error => {
+        console.error('Error during initialization:', error);
       });
     },
 
@@ -69,7 +83,7 @@ document.addEventListener('alpine:init', () => {
       const minDateObj = this.minDate ? new Date(this.minDate) : null;
       const maxDateObj = this.maxDate ? new Date(this.maxDate) : null;
 
-      // Set start and end dates (either from existing selection or min/max if after import)
+      // Set start and end dates (either from existing selection or null)
       const startDateObj = this.startDate ? new Date(this.startDate) : null;
       const endDateObj = this.endDate ? new Date(this.endDate) : null;
 
@@ -77,19 +91,18 @@ document.addEventListener('alpine:init', () => {
         `Initializing date picker with min: ${minDateObj ? minDateObj.toDateString() : 'none'}, max: ${
           maxDateObj ? maxDateObj.toDateString() : 'none'
         }`,
+        `Current selection: ${startDateObj ? startDateObj.toDateString() : 'none'} to ${
+          endDateObj ? endDateObj.toDateString() : 'none'
+        }`
       );
 
-      if (startDateObj && endDateObj) {
-        console.log(`Setting initial selection: ${startDateObj.toDateString()} to ${endDateObj.toDateString()}`);
-      }
-
-      // Initialize the date range picker
+      // Initialize the date range picker with min/max restrictions but still allow browsing all months
       this.dateRangePicker = new Litepicker({
         element: this.$refs.dateRangePicker,
         startDate: startDateObj,
         endDate: endDateObj,
-        minDate: minDateObj,
-        maxDate: maxDateObj,
+        minDate: minDateObj,  // Restrict minimum selectable date
+        maxDate: maxDateObj,  // Restrict maximum selectable date
         singleMode: false,
         numberOfMonths: 2,
         numberOfColumns: 2,
@@ -101,10 +114,44 @@ document.addEventListener('alpine:init', () => {
         inlineMode: false,
         mobileFriendly: true,
         resetButton: true, // Add reset button
+        dropdowns: {
+          minYear: minDateObj ? minDateObj.getFullYear() - 5 : 2020,  // Allow browsing 5 years before min date
+          maxYear: maxDateObj ? maxDateObj.getFullYear() + 5 : 2030,  // Allow browsing 5 years after max date
+          months: true,
+          years: true
+        },
+        lang: 'vi-VN',  // Set language to Vietnamese
+        langMoment: 'vi-VN',
         buttonText: {
-          apply: 'Apply',
-          cancel: 'Cancel',
-          reset: 'Reset',
+          apply: 'Chọn',
+          cancel: 'Đóng',
+          reset: 'Đặt lại',
+        },
+        tooltipText: {
+          one: 'ngày',
+          other: 'ngày'
+        },
+        // Define Vietnamese language configuration
+        locale: {
+          firstDay: 1, // Monday as first day of week
+          format: 'DD/MM/YYYY',
+          delimiter: ' - ',
+          tooltipPrevMonth: 'Tháng trước',
+          tooltipNextMonth: 'Tháng sau',
+          tooltipAriaNewSelection: 'Lựa chọn mới',
+          tooltipAriaSelected: 'Đã chọn',
+          tooltipAriaCalendar: 'Lịch',
+          tooltipAriaJump: 'Chuyển đến',
+          rangeDelimiter: ' đến ',
+          cancelLabel: 'Đóng',
+          resetLabel: 'Đặt lại',
+          applyLabel: 'Chọn',
+          minDays: 1,
+          maxDays: 0,
+          // Vietnamese month names
+          months: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+          // Vietnamese weekday names
+          weekdaysShort: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
         },
         setup: (picker) => {
           picker.on('selected', (startDate, endDate) => {
@@ -171,35 +218,115 @@ document.addEventListener('alpine:init', () => {
 
     async fetchCourses() {
       try {
-        const response = await fetch('/api/courses');
+        // Show loading state
+        this.isLoading = true;
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        
+        // Add pagination
+        params.append('page', this.currentPage || 1);
+        params.append('per_page', this.perPage || 100);
+        
+        // Add active filters to query
+        if (this.activeFilters.length > 0) {
+          // Group filters by field
+          const filtersByField = {};
+          this.activeFilters.forEach((filter) => {
+            if (!filtersByField[filter.field]) {
+              filtersByField[filter.field] = [];
+            }
+            filtersByField[filter.field].push(filter.value);
+          });
+          
+          // Add filters to query params
+          Object.entries(filtersByField).forEach(([field, values]) => {
+            // Handle special filter types
+            if (field === 'symbol_numeric') {
+              // Add all course symbol values
+              values.forEach(value => {
+                params.append('course_symbol', value);
+              });
+            } else if (field === 'symbol_suffix') {
+              // For suffix (event) filter, send all values without translation text
+              values.forEach(eventValue => {
+                // Extract the prefix letter from the translated value
+                // e.g., "H - Thực hành" -> "H", "K - Kiểm tra" -> "K"
+                const translationMatch = eventValue.match(/^([A-Za-z]+)\s+-\s+/);
+                const cleanValue = translationMatch ? translationMatch[1] : eventValue;
+                // Ensure we're sending just the suffix letter
+                console.log(`Filtering by event suffix: "${cleanValue}"`);
+                params.append('event', cleanValue);
+              });
+            } else if (field === 'teacher') {
+              // Teacher can match either teacher_1 or teacher_2
+              values.forEach(value => {
+                params.append('teacher_1', value);
+              });
+            } else {
+              // Standard fields - append all values
+              values.forEach(value => {
+                params.append(field, value);
+              });
+            }
+          });
+        }
+        
+        // Add date range filters
+        if (this.startDate) {
+          params.append('start_date', this.startDate);
+        }
+        if (this.endDate) {
+          params.append('end_date', this.endDate);
+        }
+        
+        // Add sorting
+        if (this.sortField) {
+          params.append('sort_field', this.sortField);
+          params.append('sort_direction', this.sortDirection);
+        }
+        
+        // Add search query if active
+        if (this.searchQuery && this.searchQuery.length >= 1) {
+          params.append('search', this.searchQuery);
+        }
+        
+        const queryString = params.toString();
+        console.log('Fetching with params:', queryString);
+        
+        const response = await fetch(`/api/courses?${queryString}`);
         const data = await response.json();
-        console.log('Raw API Response:', data);
+        console.log('API Response:', data);
 
         if (data.error) {
           throw new Error(data.error);
         }
 
+        // Update courses and pagination data
         this.courses = data.courses || [];
-
-        // Log raw course data for testing
+        this.totalCourses = data.pagination?.total || 0;
+        this.totalPages = data.pagination?.pages || 1;
+        
         console.log('Courses loaded:', this.courses.length);
-        console.log('Sample course data (first 3 courses):', this.courses.slice(0, 3));
-
-        // Log lecture hall information
-        const coursesWithHalls = this.courses.filter((course) => course.hall);
-        console.log('Courses with lecture halls:', coursesWithHalls.length);
-        if (coursesWithHalls.length > 0) {
-          console.log('Sample course with lecture hall:', coursesWithHalls[0]);
-        }
-
-        // Set min and max dates based on course data
-        this.setDateBoundaries();
-
+        console.log('Total courses:', this.totalCourses);
+        console.log('Total pages:', this.totalPages);
+        
+        // No need to filter courses again since the server has already filtered them
         this.filteredCourses = [...this.courses];
+
+        // If this is the first load, set date boundaries
+        if (!this.dateRangePicker) {
+          this.setDateBoundaries();
+        }
+        
+        // Hide loading state
+        this.isLoading = false;
         return Promise.resolve();
       } catch (error) {
         console.error('Error fetching courses:', error);
         alert('Error fetching courses: ' + error.message);
+        // Hide loading state
+        this.isLoading = false;
         return Promise.reject(error);
       }
     },
@@ -309,55 +436,10 @@ document.addEventListener('alpine:init', () => {
     },
 
     filterCourses() {
-      // Start with all courses
-      this.filteredCourses = [...this.courses];
-
-      // Apply active filters
-      if (this.activeFilters.length > 0) {
-        // Group filters by field
-        const filtersByField = {};
-        this.activeFilters.forEach((filter) => {
-          if (!filtersByField[filter.field]) {
-            filtersByField[filter.field] = [];
-          }
-          filtersByField[filter.field].push(filter.value);
-        });
-
-        // Apply filters by field
-        Object.entries(filtersByField).forEach(([field, values]) => {
-          if (values.length === 0) return; // Skip if no values selected
-
-          if (field === 'symbol_numeric') {
-            // Filter by numeric part of symbol
-            this.filteredCourses = this.filteredCourses.filter((course) => {
-              const numericPart = FilterUtils.getNumericSymbol(course.course_symbol);
-              return values.includes(numericPart);
-            });
-          } else if (field === 'symbol_suffix') {
-            // Filter by suffix part of symbol
-            this.filteredCourses = this.filteredCourses.filter((course) => {
-              const suffixPart = FilterUtils.getSymbolSuffix(course.course_symbol);
-              return values.includes(suffixPart);
-            });
-          } else if (field === 'teacher') {
-            // Special handling for teachers
-            this.filteredCourses = this.filteredCourses.filter((course) => {
-              return values.some((value) => course.teacher_1 === value || course.teacher_2 === value);
-            });
-          } else {
-            // Standard field filtering
-            this.filteredCourses = this.filteredCourses.filter((course) => values.includes(course[field]));
-          }
-        });
-      }
-
-      // Apply search query if active
-      if (this.searchQuery && this.searchQuery.length >= 1) {
-        this.filteredCourses = SearchUtils.searchCourses(this.filteredCourses, this.searchQuery);
-      }
-
-      // Apply date filters last
-      this.applyDateFilters();
+      // Reset to page 1 when applying new filters
+      this.currentPage = 1;
+      // Fetch courses with updated filters
+      this.fetchCourses();
     },
 
     applyDateFilters() {
@@ -535,8 +617,33 @@ document.addEventListener('alpine:init', () => {
       });
     },
 
+    // Update getFilterOptions method to use the cache
     getFilterOptions(field, searchQuery = '') {
-      // Use the SearchUtils module to get filter options
+      // If we have cached filter options, use them
+      if (this.filterOptionsLoaded && this.filterOptions[field]) {
+        const options = this.filterOptions[field];
+        
+        // Log the options for this field
+        if (!this.loggedFilterOptions) {
+          this.loggedFilterOptions = {};
+        }
+        
+        if (!this.loggedFilterOptions[field]) {
+          console.log(`Filter options for ${field}:`, options);
+          this.loggedFilterOptions[field] = true;
+        }
+        
+        // If there's a search query, filter the options
+        if (searchQuery && searchQuery.length > 0) {
+          const query = searchQuery.toLowerCase();
+          return options.filter((value) => value.toLowerCase().includes(query));
+        }
+        
+        return options;
+      }
+      
+      // Fall back to the old method if filter options aren't loaded yet
+      console.log(`Using fallback method for ${field} options`);
       return SearchUtils.getFilterOptions(this.courses, field, searchQuery);
     },
 
@@ -566,11 +673,17 @@ document.addEventListener('alpine:init', () => {
 
     // Apply all selected filters
     applyFilters() {
-      // First, update the activeFilters based on selectedFilters
-      this.activeFilters = [...this.selectedFilters];
+      // First, update the activeFilters based on selectedFilters, keeping original values
+      this.activeFilters = JSON.parse(JSON.stringify(this.selectedFilters));
       
-      // Then apply the filtering logic as before
-      this.filterCourses();
+      // Log the filters being applied
+      console.log('Applying filters:', this.activeFilters);
+      
+      // Reset to page 1 when applying new filters
+      this.currentPage = 1;
+      
+      // Fetch courses with updated filters
+      this.fetchCourses();
     },
 
     // Check if a filter is active (already applied)
@@ -625,8 +738,24 @@ document.addEventListener('alpine:init', () => {
         checkbox.checked = false;
       });
       
-      this.resetDateFilters();
-      this.filterCourses();
+      // Clear search field
+      this.searchQuery = '';
+      
+      // Reset date range
+      this.startDate = '';
+      this.endDate = '';
+      this.dateRangeDisplay = '';
+      
+      // Reset date picker
+      if (this.dateRangePicker) {
+        this.dateRangePicker.clearSelection();
+      }
+      
+      // Reset to page 1
+      this.currentPage = 1;
+      
+      // Refresh the data
+      this.fetchCourses();
     },
 
     // Use the helper functions from the modules
@@ -640,74 +769,6 @@ document.addEventListener('alpine:init', () => {
       return uniqueWeeks.length === 1;
     },
 
-    // Generate weekly table data for the insights view
-    generateWeeklyTableData() {
-      // Get the week number
-      const weekNumber = this.filteredCourses[0]?.week || "";
-      
-      // Initialize data structure
-      const weeklyData = {
-        weekNumber,
-        days: {}
-      };
-      
-      // Initialize days structure (T2 through CN)
-      const dayOrder = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-      dayOrder.forEach(day => {
-        weeklyData.days[day] = {
-          date: "",
-          morning: [],
-          afternoon: []
-        };
-      });
-      
-      // Group courses by day of week
-      this.filteredCourses.forEach(course => {
-        const dayOfWeek = course.day_of_week;
-        if (!dayOfWeek || !weeklyData.days[dayOfWeek]) return;
-        
-        // Set the date for this day if not already set
-        if (!weeklyData.days[dayOfWeek].date && course.date) {
-          weeklyData.days[dayOfWeek].date = course.date;
-        }
-        
-        // Determine if morning or afternoon based on period
-        const period = parseInt(course.period, 10);
-        const timeSlot = (period >= 1 && period <= 6) ? 'morning' : 'afternoon';
-        
-        // Create the entry for this course
-        const entry = {
-          period: course.period,
-          course_symbol: course.course_symbol,
-          hall: course.hall || "",
-          teacher: course.teacher_1 || "",
-          class: course.class || ""
-        };
-        
-        // Add to the appropriate time slot
-        weeklyData.days[dayOfWeek][timeSlot].push(entry);
-      });
-      
-      // Post-process: sort and group entries
-      Object.keys(weeklyData.days).forEach(day => {
-        // Sort morning entries by period
-        weeklyData.days[day].morning.sort((a, b) => {
-          return parseInt(a.period, 10) - parseInt(b.period, 10);
-        });
-        
-        // Sort afternoon entries by period
-        weeklyData.days[day].afternoon.sort((a, b) => {
-          return parseInt(a.period, 10) - parseInt(b.period, 10);
-        });
-        
-        // Group entries with the same course, teacher, and hall
-        weeklyData.days[day].morning = this.groupSimilarEntries(weeklyData.days[day].morning);
-        weeklyData.days[day].afternoon = this.groupSimilarEntries(weeklyData.days[day].afternoon);
-      });
-      
-      return weeklyData;
-    },
-    
     // Helper function to group similar entries by combining their classes
     groupSimilarEntries(entries) {
       const groupedMap = new Map();
@@ -733,6 +794,36 @@ document.addEventListener('alpine:init', () => {
       
       // Convert map back to array
       return Array.from(groupedMap.values());
+    },
+    
+    // Helper function to consolidate periods for entries with same course, teacher, class, and hall
+    consolidatePeriods(entries) {
+      const consolidatedMap = new Map();
+      
+      entries.forEach(entry => {
+        // Create a key based on course, teacher, class, and hall (excluding period)
+        const key = `${entry.course_symbol}-${entry.teacher}-${entry.class}-${entry.hall}`;
+        
+        if (consolidatedMap.has(key)) {
+          // If entry with same key exists, combine periods
+          const existingEntry = consolidatedMap.get(key);
+          const existingPeriods = existingEntry.period.split(';');
+          
+          // Add new period if it doesn't exist
+          if (!existingPeriods.includes(entry.period)) {
+            existingPeriods.push(entry.period);
+            // Sort periods numerically
+            existingPeriods.sort((a, b) => parseInt(a) - parseInt(b));
+            existingEntry.period = existingPeriods.join(';');
+          }
+        } else {
+          // Add new entry to the map
+          consolidatedMap.set(key, {...entry});
+        }
+      });
+      
+      // Convert map back to array
+      return Array.from(consolidatedMap.values());
     },
     
     // Format entry for display in the weekly table
@@ -932,6 +1023,128 @@ document.addEventListener('alpine:init', () => {
       );
     },
     
+    // Format periods into readable ranges, treating them as pairs (e.g., 1 represents 1-2, 3 represents 3-4)
+    // With special handling for period 9 to group it with 7-8 when present
+    formatPeriods(periodsStr) {
+      if (!periodsStr) return "Tiết: N/A";
+      
+      // Split by semicolon
+      const periods = periodsStr.split(';').map(p => parseInt(p)).sort((a, b) => a - b);
+      
+      if (periods.length === 0) return "Tiết: N/A";
+      
+      // Special case: check if both periods 7/8 and 9 are present
+      const has7or8 = periods.some(p => p === 7 || p === 8);
+      const has9 = periods.includes(9);
+      
+      // If we have both 7/8 and 9, we'll treat them as a single range 7-9
+      if (has7or8 && has9) {
+        // Remove 9 from the periods array - we'll handle it specially
+        const periodsWithout9 = periods.filter(p => p !== 9);
+        
+        // Convert remaining periods to pairs and format
+        let formattedPeriods = periodsWithout9.map(period => {
+          // For odd periods (except 7), show as a pair (e.g., 1 becomes "1-2")
+          if (period % 2 === 1 && period !== 7) {
+            return `${period}-${period + 1}`;
+          }
+          // For even periods (except 8), show as a pair with the previous odd period
+          if (period % 2 === 0 && period !== 8) {
+            return `${period - 1}-${period}`;
+          }
+          // Special case for periods 7 and 8 when 9 is also present
+          if (period === 7 || period === 8) {
+            return '7-9';  // Combine 7, 8, and 9 into one range
+          }
+          return period.toString();
+        });
+        
+        // Deduplicate (in case both 7 and 8 were in the original list)
+        formattedPeriods = [...new Set(formattedPeriods)];
+        
+        // Combine consecutive ranges
+        return formatRanges(formattedPeriods);
+      }
+      
+      // Normal case without special 7-8-9 handling
+      const formattedPeriods = periods.map(period => {
+        // Special case for period 9 (when alone)
+        if (period === 9) {
+          return '9';
+        }
+        // For odd periods, show as a pair (e.g., 1 becomes "1-2")
+        if (period % 2 === 1) {
+          return `${period}-${period + 1}`;
+        }
+        // For even periods, show as a pair with the previous odd period
+        return `${period - 1}-${period}`;
+      });
+      
+      // Deduplicate pairs
+      const uniquePeriods = [...new Set(formattedPeriods)];
+      
+      // Format the ranges
+      return formatRanges(uniquePeriods);
+      
+      // Helper function to format ranges from period pairs
+      function formatRanges(periodPairs) {
+        if (periodPairs.length === 1) {
+          return `Tiết: ${periodPairs[0]}`;
+        }
+        
+        // Group consecutive pairs into ranges
+        const ranges = [];
+        let currentRange = { start: null, end: null };
+        
+        periodPairs.forEach(periodPair => {
+          // Handle single-number periods (like "9")
+          if (!periodPair.includes('-')) {
+            if (currentRange.start !== null) {
+              // Add the previous range
+              ranges.push(formatRange(currentRange));
+            }
+            ranges.push(periodPair);
+            currentRange = { start: null, end: null };
+            return;
+          }
+          
+          // Parse the current pair
+          const [start, end] = periodPair.split('-').map(p => parseInt(p));
+          
+          // If this is the first pair
+          if (currentRange.start === null) {
+            currentRange = { start, end };
+          } 
+          // If this pair continues the current range
+          else if (start === currentRange.end + 1) {
+            currentRange.end = end;
+          }
+          // If this pair doesn't continue the range
+          else {
+            // Add the previous range
+            ranges.push(formatRange(currentRange));
+            // Start a new range
+            currentRange = { start, end };
+          }
+        });
+        
+        // Add the last range if not empty
+        if (currentRange.start !== null) {
+          ranges.push(formatRange(currentRange));
+        }
+        
+        return `Tiết: ${ranges.join(', ')}`;
+      }
+      
+      // Helper function to format a single range
+      function formatRange(range) {
+        if (range.start === range.end) {
+          return `${range.start}`;
+        }
+        return `${range.start}-${range.end}`;
+      }
+    },
+    
     // Export weekly view table to PDF
     exportWeeklyTableToPDF() {
       // Make sure we're using html2pdf.js from CDN
@@ -959,6 +1172,156 @@ document.addEventListener('alpine:init', () => {
       
       // Generate PDF
       html2pdf().set(options).from(weeklyTable).save();
+    },
+
+    // Add these pagination methods
+    goToPage(page) {
+      if (page < 1 || page > this.totalPages) return;
+      this.currentPage = page;
+      this.fetchCourses();
+    },
+
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.fetchCourses();
+      }
+    },
+
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.fetchCourses();
+      }
+    },
+
+    // Add the getPageNumber method after the pagination methods
+    getPageNumber(i) {
+      // Logic to display page numbers around the current page
+      if (this.totalPages <= 5) {
+        // If we have 5 or fewer pages, just return the page number as is
+        return i;
+      } else {
+        // Calculate a window of 5 pages centered on the current page
+        let startPage = Math.max(1, this.currentPage - 2);
+        let endPage = Math.min(this.totalPages, startPage + 4);
+        
+        // Adjust if we're near the end
+        if (endPage - startPage < 4) {
+          startPage = Math.max(1, endPage - 4);
+        }
+        
+        return startPage + i - 1;
+      }
+    },
+
+    // Add new method to fetch filter options
+    async fetchFilterOptions() {
+      if (this.filterOptionsLoaded) {
+        console.log('Filter options already loaded, using cache');
+        return Promise.resolve();
+      }
+      
+      try {
+        console.log('Fetching filter options from server');
+        const response = await fetch('/api/filter-options');
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Log each filter type count
+        Object.keys(data).forEach(key => {
+          const count = data[key] ? data[key].length : 0;
+          console.log(`Received ${count} options for ${key}`);
+          if (count === 0) {
+            console.warn(`Warning: No options found for ${key}`);
+          } else if (key === 'symbol_numeric' || key === 'symbol_suffix') {
+            // Log sample values for these specific filters
+            console.log(`Sample ${key} values:`, data[key].slice(0, 5));
+          }
+        });
+        
+        this.filterOptions = data;
+        this.filterOptionsLoaded = true;
+        return Promise.resolve();
+      } catch (error) {
+        console.error('Error fetching filter options:', error);
+        return Promise.reject(error);
+      }
+    },
+
+    // Generate weekly table data for the insights view
+    generateWeeklyTableData() {
+      // Get the week number
+      const weekNumber = this.filteredCourses[0]?.week || "";
+      
+      // Initialize data structure
+      const weeklyData = {
+        weekNumber,
+        days: {}
+      };
+      
+      // Initialize days structure (T2 through CN)
+      const dayOrder = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+      dayOrder.forEach(day => {
+        weeklyData.days[day] = {
+          date: "",
+          morning: [],
+          afternoon: []
+        };
+      });
+      
+      // Group courses by day of week
+      this.filteredCourses.forEach(course => {
+        const dayOfWeek = course.day_of_week;
+        if (!dayOfWeek || !weeklyData.days[dayOfWeek]) return;
+        
+        // Set the date for this day if not already set
+        if (!weeklyData.days[dayOfWeek].date && course.date) {
+          weeklyData.days[dayOfWeek].date = course.date;
+        }
+        
+        // Determine if morning or afternoon based on period
+        const period = parseInt(course.period, 10);
+        const timeSlot = (period >= 1 && period <= 6) ? 'morning' : 'afternoon';
+        
+        // Create the entry for this course
+        const entry = {
+          period: course.period,
+          course_symbol: course.course_symbol,
+          hall: course.hall || "",
+          teacher: course.teacher_1 || "",
+          class: course.class || ""
+        };
+        
+        // Add to the appropriate time slot
+        weeklyData.days[dayOfWeek][timeSlot].push(entry);
+      });
+      
+      // Post-process: sort and group entries
+      Object.keys(weeklyData.days).forEach(day => {
+        // Sort morning entries by period
+        weeklyData.days[day].morning.sort((a, b) => {
+          return parseInt(a.period, 10) - parseInt(b.period, 10);
+        });
+        
+        // Sort afternoon entries by period
+        weeklyData.days[day].afternoon.sort((a, b) => {
+          return parseInt(a.period, 10) - parseInt(b.period, 10);
+        });
+        
+        // First, group entries with the same course, teacher, hall and period, but different classes
+        weeklyData.days[day].morning = this.groupSimilarEntries(weeklyData.days[day].morning);
+        weeklyData.days[day].afternoon = this.groupSimilarEntries(weeklyData.days[day].afternoon);
+        
+        // Then, consolidate entries with the same course, teacher, class, and hall but different periods
+        weeklyData.days[day].morning = this.consolidatePeriods(weeklyData.days[day].morning);
+        weeklyData.days[day].afternoon = this.consolidatePeriods(weeklyData.days[day].afternoon);
+      });
+      
+      return weeklyData;
     },
   }));
 });

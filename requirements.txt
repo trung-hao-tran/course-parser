@@ -7,3 +7,4 @@ flask-cors>=3.0.10
 flaskwebgui>=1.1.0
 waitress>=2.0.0
 pyinstaller>=6.4.0
+sqlite-utils>=3.30
