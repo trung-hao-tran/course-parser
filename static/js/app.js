@@ -79,30 +79,22 @@ document.addEventListener('alpine:init', () => {
     },
 
     initDateRangePicker() {
-      // Convert min/max dates to Date objects for the picker
-      const minDateObj = this.minDate ? new Date(this.minDate) : null;
-      const maxDateObj = this.maxDate ? new Date(this.maxDate) : null;
-
-      // Set start and end dates (either from existing selection or null)
+      // Set start and end dates (only if already selected)
       const startDateObj = this.startDate ? new Date(this.startDate) : null;
       const endDateObj = this.endDate ? new Date(this.endDate) : null;
 
       console.log(
-        `Initializing date picker with min: ${minDateObj ? minDateObj.toDateString() : 'none'}, max: ${
-          maxDateObj ? maxDateObj.toDateString() : 'none'
-        }`,
-        `Current selection: ${startDateObj ? startDateObj.toDateString() : 'none'} to ${
-          endDateObj ? endDateObj.toDateString() : 'none'
-        }`
+        `Initializing date picker with current selection:`,
+        startDateObj ? startDateObj.toDateString() : 'none',
+        'to',
+        endDateObj ? endDateObj.toDateString() : 'none'
       );
 
-      // Initialize the date range picker with min/max restrictions but still allow browsing all months
+      // Initialize the date range picker without min/max date restrictions
       this.dateRangePicker = new Litepicker({
         element: this.$refs.dateRangePicker,
         startDate: startDateObj,
         endDate: endDateObj,
-        minDate: minDateObj,  // Restrict minimum selectable date
-        maxDate: maxDateObj,  // Restrict maximum selectable date
         singleMode: false,
         numberOfMonths: 2,
         numberOfColumns: 2,
@@ -114,44 +106,25 @@ document.addEventListener('alpine:init', () => {
         inlineMode: false,
         mobileFriendly: true,
         resetButton: true, // Add reset button
-        dropdowns: {
-          minYear: minDateObj ? minDateObj.getFullYear() - 5 : 2020,  // Allow browsing 5 years before min date
-          maxYear: maxDateObj ? maxDateObj.getFullYear() + 5 : 2030,  // Allow browsing 5 years after max date
-          months: true,
-          years: true
+        // Vietnamese language settings
+        lang: 'vi-VN',
+        langOpts: {
+          'vi-VN': {
+            button_apply: 'Áp dụng',
+            button_cancel: 'Hủy',
+            button_reset: 'Xóa',
+            tooltip_clear: 'Xóa lựa chọn',
+            tooltip_close: 'Đóng',
+            tooltip_next: 'Tháng sau',
+            tooltip_prev: 'Tháng trước',
+            day_of_week: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+            month_name: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
+          }
         },
-        lang: 'vi-VN',  // Set language to Vietnamese
-        langMoment: 'vi-VN',
         buttonText: {
-          apply: 'Chọn',
-          cancel: 'Đóng',
-          reset: 'Đặt lại',
-        },
-        tooltipText: {
-          one: 'ngày',
-          other: 'ngày'
-        },
-        // Define Vietnamese language configuration
-        locale: {
-          firstDay: 1, // Monday as first day of week
-          format: 'DD/MM/YYYY',
-          delimiter: ' - ',
-          tooltipPrevMonth: 'Tháng trước',
-          tooltipNextMonth: 'Tháng sau',
-          tooltipAriaNewSelection: 'Lựa chọn mới',
-          tooltipAriaSelected: 'Đã chọn',
-          tooltipAriaCalendar: 'Lịch',
-          tooltipAriaJump: 'Chuyển đến',
-          rangeDelimiter: ' đến ',
-          cancelLabel: 'Đóng',
-          resetLabel: 'Đặt lại',
-          applyLabel: 'Chọn',
-          minDays: 1,
-          maxDays: 0,
-          // Vietnamese month names
-          months: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
-          // Vietnamese weekday names
-          weekdaysShort: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+          apply: 'Áp dụng',
+          cancel: 'Hủy',
+          reset: 'Xóa',
         },
         setup: (picker) => {
           picker.on('selected', (startDate, endDate) => {
@@ -566,7 +539,7 @@ document.addEventListener('alpine:init', () => {
             this.importStatusMessage = '';
           }, 1500);
 
-          // Fetch courses and set date boundaries
+          // Fetch courses 
           return this.fetchCourses();
         })
         .then(() => {
@@ -575,23 +548,10 @@ document.addEventListener('alpine:init', () => {
             this.dateRangePicker.destroy();
           }
 
-          // Set date range to the full range (min to max)
-          if (this.minDate && this.maxDate) {
-            this.startDate = this.minDate;
-            this.endDate = this.maxDate;
-
-            // Format dates for display
-            const minDateObj = new Date(this.minDate);
-            const maxDateObj = new Date(this.maxDate);
-            this.dateRangeDisplay = `${DateUtils.formatDate(minDateObj)} - ${DateUtils.formatDate(maxDateObj)}`;
-
-            console.log(`Date range set to full range: ${this.dateRangeDisplay}`);
-          }
-
-          // Initialize a new date picker with the updated min/max dates
+          // Initialize a new date picker (without min/max date restrictions)
           this.initDateRangePicker();
 
-          // Apply filters to update the table with the full date range
+          // Apply filters to update the table
           this.filterCourses();
         })
         .catch((error) => {
