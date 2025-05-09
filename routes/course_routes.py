@@ -142,7 +142,7 @@ def get_courses():
         
         # Handle special case: teacher filter
         if teacher_values:
-            # Need to check both teacher_1 and teacher_2 in course_details table
+            # Need to check only teacher_1 in course_details table
             # This requires a JOIN with the course_details table
             base_query = '''
                 SELECT 
@@ -163,8 +163,7 @@ def get_courses():
             
             teacher_clauses = []
             for teacher in teacher_values:
-                teacher_clauses.append("(cd.teacher_1 LIKE ? OR cd.teacher_2 LIKE ?)")
-                params.append(f"%{teacher}%")
+                teacher_clauses.append("cd.teacher_1 LIKE ?")
                 params.append(f"%{teacher}%")
             
             if teacher_clauses:
@@ -516,7 +515,7 @@ def get_courses_for_insights():
         
         # Handle special case: teacher filter
         if teacher_values:
-            # Need to check both teacher_1 and teacher_2 in course_details table
+            # Need to check only teacher_1 in course_details table
             # This requires a JOIN with the course_details table
             base_query = '''
                 SELECT 
@@ -537,8 +536,7 @@ def get_courses_for_insights():
             
             teacher_clauses = []
             for teacher in teacher_values:
-                teacher_clauses.append("(cd.teacher_1 LIKE ? OR cd.teacher_2 LIKE ?)")
-                params.append(f"%{teacher}%")
+                teacher_clauses.append("cd.teacher_1 LIKE ?")
                 params.append(f"%{teacher}%")
             
             if teacher_clauses:

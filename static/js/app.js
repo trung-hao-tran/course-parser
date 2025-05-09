@@ -1056,7 +1056,12 @@ document.addEventListener('alpine:init', () => {
         const ranges = [];
         let currentRange = { start: null, end: null };
         
-        periodPairs.forEach(periodPair => {
+        periodPairs.sort((a, b) => {
+          // Extract the first number from each pair for sorting
+          const aNum = parseInt(a.split('-')[0]);
+          const bNum = parseInt(b.split('-')[0]);
+          return aNum - bNum;
+        }).forEach(periodPair => {
           // Handle single-number periods (like "9")
           if (!periodPair.includes('-')) {
             if (currentRange.start !== null) {
